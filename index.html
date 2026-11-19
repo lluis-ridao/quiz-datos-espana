@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>¿Cuánto sabes de España en datos? · Quiz</title>
+<meta name="description" content="Diez preguntas sobre España con datos oficiales (INE, Seguridad Social, Ministerio de Sanidad…). Cada respuesta enlaza su fuente.">
+<style>
+  :root { --bg:#0f1115; --panel:#181b22; --line:#262a33; --txt:#e8e8ea; --muted:#8b8f99; --acc:#58a6ff; --ok:#7ee787; --ko:#ff7b72; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--txt); font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif; }
+  main { max-width:640px; margin:0 auto; padding:24px 16px 40px; }
+  h1 { font-size:24px; margin:0 0 4px; }
+  .sub { color:var(--muted); margin:0 0 20px; }
+  .panel { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:20px; }
+  .progreso { display:flex; justify-content:space-between; color:var(--muted); font-size:14px; margin-bottom:10px; }
+  .pista { height:4px; background:var(--line); border-radius:2px; margin-bottom:18px; overflow:hidden; }
+  .pista div { height:100%; background:var(--acc); transition:width .3s; }
+  h2 { font-size:20px; margin:0 0 16px; }
+  .opcion { display:block; width:100%; text-align:left; font:inherit; color:var(--txt); background:var(--bg); border:1px solid var(--line); border-radius:10px; padding:12px 14px; margin-bottom:10px; cursor:pointer; }
+  .opcion:hover:not(:disabled) { border-color:var(--acc); }
+  .opcion.ok { border-color:var(--ok); background:rgba(126,231,135,.12); }
+  .opcion.ko { border-color:var(--ko); background:rgba(255,123,114,.12); }
+  .explica { margin-top:6px; padding:12px 14px; border-left:3px solid var(--acc); background:var(--bg); border-radius:0 8px 8px 0; font-size:15px; }
+  .explica a { color:var(--acc); }
+  .acciones { margin-top:16px; text-align:right; }
+  button.principal { font:inherit; font-weight:600; color:var(--bg); background:var(--acc); border:0; border-radius:999px; padding:10px 22px; cursor:pointer; }
+  .nota { font-size:56px; font-weight:700; margin:0; }
+  .muted { color:var(--muted); }
+  footer { color:var(--muted); font-size:13px; text-align:center; margin-top:24px; }
+  footer a { color:var(--txt); }
+</style>
+</head>
+<body>
+<main>
+  <h1>¿Cuánto sabes de España en datos?</h1>
+  <p class="sub">Diez preguntas con cifras oficiales. Cada respuesta enlaza su fuente.</p>
+  <div class="panel" id="juego"><p class="muted">Cargando preguntas…</p></div>
+  <footer>Preguntas de <a href="https://www.datosclaros.es/quiz/">DatosClaros</a>, datos públicos explicados con claridad · Hecho por <a href="https://www.lluisridao.com">Lluís Ridao</a> · <a href="https://github.com/lluis-ridao/quiz-datos-espana">código</a></footer>
+</main>
+<script>
+(async () => {
+  // Copia de respaldo (19/11/2026). Si la API de DatosClaros responde, se usan sus preguntas actualizadas.
+  const RESPALDO = [
+    {pregunta:'¿Cuál es la tasa de paro en España según la EPA del tercer trimestre de 2026?', opciones:['6 %','10,2 %','14,5 %','18 %'], correcta:1, explicacion:'La EPA del 3T 2026 sitúa el paro en el 10,18 %, con 2.591.200 parados.', url:'https://servicios.ine.es/wstempus/js/ES/DATOS_TABLA/65334'},
+    {pregunta:'¿Cuántos hijos tiene de media cada mujer en España (indicador coyuntural de fecundidad)?', opciones:['0,8','1,11','1,5','2,1'], correcta:1, explicacion:'El indicador coyuntural de fecundidad es de 1,11 hijos por mujer, muy lejos del 2,1 que asegura el relevo generacional.', url:'https://servicios.ine.es/wstempus/js/ES/DATOS_TABLA/1407'},
+    {pregunta:'¿A qué edad tienen de media las mujeres su primer hijo en España?', opciones:['27,2 años','29,0 años','31,6 años','34,5 años'], correcta:2, explicacion:'La edad media a la maternidad del primer hijo es de 31,64 años.', url:'https://servicios.ine.es/wstempus/js/ES/DATOS_TABLA/48879'},
+    {pregunta:'¿Cuánto subieron los precios (IPC) en España en el año hasta octubre de 2026?', opciones:['1,2 %','2,9 %','4,9 %','7,6 %'], correcta:2, explicacion:'La inflación anual de octubre de 2026 fue del 4,9 %, empujada sobre todo por el transporte (+10,3 %) y la vivienda y la energía (+7,6 %).', url:'https://servicios.ine.es/wstempus/js/ES/DATOS_TABLA/79181'},
+    {pregunta:'¿Cuántas personas había en lista de espera quirúrgica en diciembre de 2025?', opciones:['250.000','480.000','853.509','1,5 millones'], correcta:2, explicacion:'El Sistema de Información de Listas de Espera del SNS registró 853.509 pacientes, con una espera media de 121 días.', url:'https://www.datosclaros.es/sanidad/'},
+    {pregunta:'¿Cuál es la pensión máxima de jubilación en 2026?', opciones:['2.100 € al mes','2.800 € al mes','3.359,60 € al mes','4.500 € al mes'], correcta:2, explicacion:'La pensión máxima en 2026 es de 3.359,60 € al mes en 14 pagas.', url:'https://www.oie.es/pension-maxima-de-jubilacion/'},
+    {pregunta:'¿Cuál fue la mayor partida del gasto público en 2024, según la clasificación por funciones (COFOG)?', opciones:['Defensa','Educación','Protección social','Sanidad'], correcta:2, explicacion:'Protección social, que incluye las pensiones, es con diferencia la mayor partida del gasto de las administraciones públicas.', url:'https://www.datosclaros.es/donde-van-mis-impuestos/'},
+    {pregunta:'¿Cuántas personas trabajan para las administraciones públicas según el boletín de enero de 2026?', opciones:['1,2 millones','2,1 millones','3,07 millones','4,5 millones'], correcta:2, explicacion:'El Boletín Estadístico del Personal al Servicio de las Administraciones Públicas contabiliza 3.071.725 personas; casi dos tercios trabajan para las comunidades autónomas.', url:'https://www.datosclaros.es/empleo-publico/'},
+    {pregunta:'¿Cuántas personas había en las cárceles españolas al cierre de 2025?', opciones:['35.000','48.000','62.522','90.000'], correcta:2, explicacion:'Al cierre de 2025 había 62.522 internos: 51.559 en las cárceles del Estado y el resto en las de Cataluña.', url:'https://www.moncloa.com/2026/01/30/espana-62500-presos-carceles-3358206/'},
+    {pregunta:'¿Qué parte de los delitos registrados en el primer semestre de 2026 fue cibercriminalidad?', opciones:['Un 2 %','Un 8 %','Un 20 %','Un 45 %'], correcta:2, explicacion:'De 1.217.476 infracciones penales, 245.936 fueron cibercriminalidad: el 20,2 %, sobre todo estafas por internet.', url:'https://www.datosclaros.es/sistema-judicial/'}
+  ];
+
+  const $j = document.getElementById('juego');
+  const limpiar = t => String(t).replace(/<[^>]*>/g, '').trim();
+  const esc = t => String(t).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+  let preguntas = RESPALDO;
+  try {
+    const r = await fetch('https://www.datosclaros.es/api-datos/?accion=leer&seccion=quiz', {cache: 'no-store'});
+    const d = await r.json();
+    if (Array.isArray(d.preguntas) && d.preguntas.length >= 5) {
+      preguntas = d.preguntas.map(p => ({pregunta: p.pregunta, opciones: p.opciones, correcta: p.correcta, explicacion: limpiar(p.explicacion).replace(/\s*Fuente:.*$/, ''), url: p.url}));
+    }
+  } catch (e) { /* sin conexión o API caída: se usa la copia de respaldo */ }
+
+  // Barajar preguntas y opciones
+  const barajar = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  let ronda, idx, aciertos;
+
+  function empezar() {
+    ronda = barajar(preguntas).map(p => {
+      const orden = barajar(p.opciones.map((t, i) => i));
+      return {...p, opciones: orden.map(i => p.opciones[i]), correcta: orden.indexOf(p.correcta)};
+    });
+    idx = 0; aciertos = 0; mostrar();
+  }
+
+  function mostrar() {
+    const p = ronda[idx];
+    $j.innerHTML = `
+      <div class="progreso"><span>Pregunta ${idx + 1} de ${ronda.length}</span><span>Aciertos: ${aciertos}</span></div>
+      <div class="pista"><div style="width:${idx / ronda.length * 100}%"></div></div>
+      <h2>${esc(p.pregunta)}</h2>
+      <div id="ops">${p.opciones.map((o, i) => `<button class="opcion" data-i="${i}">${esc(o)}</button>`).join('')}</div>
+      <div id="tras"></div>`;
+    $j.querySelectorAll('.opcion').forEach(b => b.onclick = () => responder(+b.dataset.i));
+  }
+
+  function responder(i) {
+    const p = ronda[idx], bs = $j.querySelectorAll('.opcion');
+    bs.forEach(b => b.disabled = true);
+    bs[p.correcta].classList.add('ok');
+    if (i === p.correcta) aciertos++; else bs[i].classList.add('ko');
+    const ultima = idx === ronda.length - 1;
+    document.getElementById('tras').innerHTML = `
+      <div class="explica"><strong>${i === p.correcta ? '¡Correcto!' : 'No es esa.'}</strong> ${esc(p.explicacion)} ${p.url ? `<a href="${esc(p.url)}" target="_blank" rel="noopener">Ver la fuente</a>` : ''}</div>
+      <div class="acciones"><button class="principal" id="sig">${ultima ? 'Ver resultado' : 'Siguiente'}</button></div>`;
+    document.getElementById('sig').onclick = () => { if (ultima) final(); else { idx++; mostrar(); } };
+    document.getElementById('sig').focus();
+  }
+
+  function final() {
+    const n = aciertos, t = ronda.length;
+    const frase = n === t ? '¡Pleno! Conoces España mejor que muchos titulares.' : n >= t * 0.7 ? 'Muy bien: tienes los datos claros.' : n >= t * 0.4 ? 'No está mal, pero algunas cifras te han sorprendido.' : 'Los datos sorprenden: vale la pena mirarlos con calma.';
+    $j.innerHTML = `
+      <p class="muted">Tu resultado</p>
+      <p class="nota">${n}/${t}</p>
+      <p>${frase}</p>
+      <p class="muted">Todas las cifras, con gráficos y calculadoras, en <a href="https://www.datosclaros.es" style="color:var(--acc)">datosclaros.es</a>.</p>
+      <div class="acciones"><button class="principal" id="otra">Jugar otra vez</button></div>`;
+    document.getElementById('otra').onclick = empezar;
+  }
+
+  empezar();
+})();
+</script>
+</body>
+</html>
